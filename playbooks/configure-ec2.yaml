@@ -1,0 +1,47 @@
+- name: Install Git on Amazon EC2
+  hosts: ec2
+  become: yes
+
+  tasks:
+    - name: Install git
+      yum:
+        name: git
+        state: present
+
+- name: Instal nodejs 
+  hosts: ec2
+
+  tasks:
+    - name: install nodejs
+      shell: |
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+        . ~/.bashrc
+        nvm install 22
+
+- name: Clone the project folder from github
+  hosts: ec2
+
+  tasks:
+    - name: Clone the project
+      git:
+        repo: "https://{{ githubuser }}:{{ githubpassword }}@github.com/Cloud-Frameworks/nextjs-starter-ec2.git"
+        dest: ~/nextjs-starter-ec2
+
+- name: Inatall dependencies and pm2 and start the app.
+  hosts: ec2
+
+  tasks:
+    - name: Install npm packages for prod.
+      community.general.npm:
+        path: ~/nextjs-starter-ec2
+        production: true
+
+    - name: Install "pm2" node.js package globally.
+      community.general.npm:
+        name: pm2
+        global: true
+
+    - name: Run the application via pm2
+      shell: |
+        cd ~/nextjs-starter-ec2
+        pm2 start npm --name cloudframeworks -- start
