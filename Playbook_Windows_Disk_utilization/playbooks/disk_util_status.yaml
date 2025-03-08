@@ -1,0 +1,12 @@
+- name: Check C Drive Capacity and Usage
+  hosts: windows
+  gather_facts: no
+  tasks:
+    - name: Get C Drive Disk Usage
+      win_shell: |
+        Get-PSDrive C | Select-Object Used, Free, @{Name='Capacity'; Expression={$_.Used + $_.Free}} | ConvertTo-Json
+      register: disk_usage
+
+    - name: Show C Drive Disk Usage
+      debug:
+        msg: "{{ disk_usage.stdout | from_json }}"
